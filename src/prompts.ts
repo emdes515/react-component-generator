@@ -1,7 +1,11 @@
 import * as vscode from 'vscode';
 import { getComponentFolders } from './utils/pathUtils';
+import * as path from 'path';
 
-export async function promptUserForComponentDetails(componentsPath: string) {
+export async function promptUserForComponentDetails(
+	componentsPath: string,
+	isUsingTypeScript: boolean
+) {
 	const isNestedComponent = await vscode.window.showQuickPick(['No', 'Yes'], {
 		placeHolder: 'Should this component be part of another component?',
 	});
@@ -23,18 +27,27 @@ export async function promptUserForComponentDetails(componentsPath: string) {
 		placeHolder: 'Should the component be Container-Presentation?',
 	});
 
-	const useTypescript = await vscode.window.showQuickPick(['No', 'Yes'], {
-		placeHolder: 'Use TypeScript?',
-	});
+	let useTypescript = false;
+	let usePropTypes = false;
 
-	const usePropTypes = await vscode.window.showQuickPick(['No', 'Yes'], {
-		placeHolder: 'Use PropTypes?',
-	});
+	if (isUsingTypeScript) {
+		useTypescript = true;
+	} else {
+		const userChoice = await vscode.window.showQuickPick(['TypeScript', 'PropTypes'], {
+			placeHolder: 'Do you want to use TypeScript or PropTypes?',
+		});
+
+		if (userChoice === 'TypeScript') {
+			useTypescript = true;
+		} else if (userChoice === 'PropTypes') {
+			usePropTypes = true;
+		}
+	}
 
 	return {
 		targetPath,
 		isContainerPresentation: isContainerPresentation === 'Yes',
-		useTypescript: useTypescript === 'Yes',
-		usePropTypes: usePropTypes === 'Yes',
+		useTypescript,
+		usePropTypes,
 	};
 }
