@@ -1,11 +1,11 @@
 {
 	"name": "react-component-generator-by-Mateusz-Jankowski",
 	"displayName": "React Component Generator by Mateusz Jankowski",
-	"description": "",
+	"description": "A Visual Studio Code extension that simplifies React component creation, supporting functional components, container-presentation pairs, TypeScript, and PropTypes.",
 	"author": "Mateusz Jankowski",
 	"publisher": "MateuszJankowskii",
 	"license": "MIT",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"engines": {
 		"vscode": "^1.92.0"
 	},
