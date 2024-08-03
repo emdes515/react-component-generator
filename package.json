@@ -1,15 +1,21 @@
 {
-	"name": "react-component-generator",
-	"displayName": "react-component-generator",
+	"name": "react-component-generator-by-Mateusz-Jankowski",
+	"displayName": "React Component Generator by Mateusz Jankowski",
 	"description": "",
 	"author": "Mateusz Jankowski",
+	"publisher": "MateuszJankowskii",
 	"license": "MIT",
-	"version": "0.0.1",
+	"version": "0.1.1",
 	"engines": {
 		"vscode": "^1.92.0"
 	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/emdes515/react-component-generator"
+	},
+	"icon": "images/icon.png",
 	"categories": [
-		"Other"
+		"Extension Packs"
 	],
 	"activationEvents": [],
 	"main": "./dist/extension.js",
