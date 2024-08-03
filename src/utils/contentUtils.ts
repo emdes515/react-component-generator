@@ -1,95 +1,84 @@
-import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
-import { promptUserForComponentDetails } from '../prompts';
-import {
-	createFunctionalComponentContent,
-	createContainerComponentContent,
-	createPresentationComponentContent,
-	createTypesContent,
-} from './contentUtils';
-import { getComponentFolders } from './pathUtils';
+export function createFunctionalComponentContent(
+	componentName: string,
+	usePropTypes: boolean
+): string {
+	return `import React from 'react'${usePropTypes ? ', { PropTypes }' : ''};
+${usePropTypes ? `import PropTypes from 'prop-types';` : ''}
+    
+const ${componentName} = (props) => {
+    return (
+        <div>
+            {/* Your component implementation */}
+        </div>
+    );
+};
 
-export async function createComponent() {
-	const componentName = await vscode.window.showInputBox({
-		prompt: 'Enter the component name',
-		placeHolder: 'e.g., MyComponent',
-	});
-
-	if (!componentName) {
-		vscode.window.showErrorMessage('Component name is required');
-		return;
-	}
-
-	const workspaceFolders = vscode.workspace.workspaceFolders;
-	if (!workspaceFolders) {
-		vscode.window.showErrorMessage('No workspace folder found');
-		return;
-	}
-
-	const workspacePath = workspaceFolders[0].uri.fsPath;
-	const componentsPath = path.join(workspacePath, 'components');
-
-	if (!fs.existsSync(componentsPath)) {
-		fs.mkdirSync(componentsPath);
-	}
-
-	const isUsingTypeScript = checkForTypeScript(workspacePath);
-
-	const { targetPath, isContainerPresentation, useTypescript, usePropTypes } =
-		await promptUserForComponentDetails(componentsPath, isUsingTypeScript);
-
-	const componentDir = path.join(targetPath, componentName.toLowerCase());
-	const componentFile = path.join(
-		componentDir,
-		`${componentName}${useTypescript ? '.tsx' : '.jsx'}`
-	);
-	const presentationFile = path.join(
-		componentDir,
-		`${componentName}Presentation${useTypescript ? '.tsx' : '.jsx'}`
-	);
-	const typesFile = path.join(componentDir, `${componentName}.types.ts`);
-
-	if (fs.existsSync(componentDir)) {
-		vscode.window.showErrorMessage('A folder with this name already exists');
-		return;
-	}
-
-	fs.mkdirSync(componentDir);
-
-	if (isContainerPresentation) {
-		fs.writeFileSync(
-			componentFile,
-			createContainerComponentContent(componentName, useTypescript, usePropTypes)
-		);
-		fs.writeFileSync(
-			presentationFile,
-			createPresentationComponentContent(componentName, useTypescript, usePropTypes)
-		);
-		if (useTypescript) {
-			fs.writeFileSync(typesFile, createTypesContent(componentName));
-		}
-	} else {
-		fs.writeFileSync(componentFile, createFunctionalComponentContent(componentName, usePropTypes));
-	}
-
-	vscode.window.showInformationMessage(`Component ${componentName} has been created!`);
+export default ${componentName};
+${
+	usePropTypes
+		? `
+${componentName}.propTypes = {
+    // Define your PropTypes here
+};`
+		: ''
+}`;
 }
 
-function checkForTypeScript(workspacePath: string): boolean {
-	try {
-		const packageJsonPath = path.join(workspacePath, 'package.json');
-		if (!fs.existsSync(packageJsonPath)) {
-			return false;
-		}
+export function createContainerComponentContent(
+	componentName: string,
+	useTypescript: boolean,
+	usePropTypes: boolean
+): string {
+	return `import React from 'react';
+import ${componentName}Presentation from './${componentName}Presentation'${useTypescript ? `;\nimport { I${componentName}Props } from './${componentName}.types'` : ''}${usePropTypes ? `;\nimport PropTypes from 'prop-types';` : ''};
 
-		const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-		const dependencies = packageJson.dependencies || {};
-		const devDependencies = packageJson.devDependencies || {};
+const ${componentName}${useTypescript ? `: React.FC<I${componentName}Props>` : ''} = (props${useTypescript ? ': I${componentName}Props' : ''}) => {
+    return <${componentName}Presentation {...props} />;
+};
 
-		return 'typescript' in dependencies || 'typescript' in devDependencies;
-	} catch (error) {
-		vscode.window.showErrorMessage('Could not read package.json file.');
-		return false;
-	}
+export default ${componentName};
+${
+	usePropTypes
+		? `
+${componentName}.propTypes = {
+    // Define your PropTypes here
+};`
+		: ''
+}`;
+}
+
+export function createPresentationComponentContent(
+	componentName: string,
+	useTypescript: boolean,
+	usePropTypes: boolean
+): string {
+	return `import React from 'react'${useTypescript ? `;\nimport { I${componentName}PresentationProps } from './${componentName}.types'` : ''}${usePropTypes ? `;\nimport PropTypes from 'prop-types';` : ''};
+
+const ${componentName}Presentation${useTypescript ? `: React.FC<I${componentName}PresentationProps>` : ''} = (props${useTypescript ? ': I${componentName}PresentationProps' : ''}) => {
+    return (
+        <div>
+            {/* Your presentation component implementation */}
+        </div>
+    );
+};
+
+export default ${componentName}Presentation;
+${
+	usePropTypes
+		? `
+${componentName}Presentation.propTypes = {
+    // Define your PropTypes here
+};`
+		: ''
+}`;
+}
+
+export function createTypesContent(componentName: string): string {
+	return `export interface I${componentName}Props {
+    // Define your props for the main component
+}
+
+export interface I${componentName}PresentationProps {
+    // Define your props for the presentation component
+}`;
 }

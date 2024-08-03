@@ -8,7 +8,6 @@ import {
 	createPresentationComponentContent,
 	createTypesContent,
 } from './contentUtils';
-import { getComponentFolders } from './pathUtils';
 
 export async function createComponent() {
 	const componentName = await vscode.window.showInputBox({
@@ -34,8 +33,10 @@ export async function createComponent() {
 		fs.mkdirSync(componentsPath);
 	}
 
+	const isUsingTypeScript = checkForTypeScript(workspacePath);
+
 	const { targetPath, isContainerPresentation, useTypescript, usePropTypes } =
-		await promptUserForComponentDetails(componentsPath);
+		await promptUserForComponentDetails(componentsPath, isUsingTypeScript);
 
 	const componentDir = path.join(targetPath, componentName.toLowerCase());
 	const componentFile = path.join(
@@ -72,4 +73,22 @@ export async function createComponent() {
 	}
 
 	vscode.window.showInformationMessage(`Component ${componentName} has been created!`);
+}
+
+function checkForTypeScript(workspacePath: string): boolean {
+	try {
+		const packageJsonPath = path.join(workspacePath, 'package.json');
+		if (!fs.existsSync(packageJsonPath)) {
+			return false;
+		}
+
+		const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+		const dependencies = packageJson.dependencies || {};
+		const devDependencies = packageJson.devDependencies || {};
+
+		return 'typescript' in dependencies || 'typescript' in devDependencies;
+	} catch (error) {
+		vscode.window.showErrorMessage('Could not read package.json file.');
+		return false;
+	}
 }
