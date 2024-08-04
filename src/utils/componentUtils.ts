@@ -8,11 +8,12 @@ import {
 	createPresentationComponentContent,
 	createTypesContent,
 } from './contentUtils';
+import { getComponentFolders, createNestedFolders } from './pathUtils';
 
 export async function createComponent() {
 	const componentName = await vscode.window.showInputBox({
 		prompt: 'Enter the component name',
-		placeHolder: 'e.g., MyComponent',
+		placeHolder: 'e.g., AuthButton',
 	});
 
 	if (!componentName) {
@@ -38,7 +39,9 @@ export async function createComponent() {
 	const { targetPath, isContainerPresentation, useTypescript, usePropTypes } =
 		await promptUserForComponentDetails(componentsPath, isUsingTypeScript);
 
-	const componentDir = path.join(targetPath, componentName.toLowerCase());
+	const folderName = componentName.charAt(0).toLowerCase() + componentName.slice(1);
+	const componentDir = path.join(targetPath, folderName);
+
 	const componentFile = path.join(
 		componentDir,
 		`${componentName}${useTypescript ? '.tsx' : '.jsx'}`
@@ -54,7 +57,8 @@ export async function createComponent() {
 		return;
 	}
 
-	fs.mkdirSync(componentDir);
+	// Create nested folders if necessary
+	createNestedFolders(componentDir);
 
 	if (isContainerPresentation) {
 		fs.writeFileSync(
